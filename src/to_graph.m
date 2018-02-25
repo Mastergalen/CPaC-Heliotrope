@@ -1,12 +1,10 @@
 function [ G ] = to_graph( distance )
-%GRAPH Summary of this function goes here
-%   Detailed explanation goes here
-THRESHOLD = 150;
+%TO_GRAPH Convert distance matrix to graph
+THRESHOLD = 210;
 
-diff = distance < THRESHOLD;
-G = and(diff, distance > 0.0);
-G = sparse(G);
-visualise_graph = graph(G);
+deletion_mask = distance > THRESHOLD;
+distance(deletion_mask) = 0;
 
-plot(visualise_graph);
+G = graph(distance);
+plot(G);
 end
