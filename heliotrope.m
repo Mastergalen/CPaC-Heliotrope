@@ -24,9 +24,15 @@ disp('Double-click to finish drawing')
 
 % FIXME: Reenable manual drawing for final version 
 [x, y] = getpts;
+close;
 % x = [832;1185.00000000000];
 % y = [546.000000000000;561.000000000000];
-user_path = [x, y];
+user_path = [y, x];
+
+% imshow(seq(:, :, :, starting_img))
+% hold on
+% scatter(x, y, 'r.')
+
 n_pts = size(user_path, 1);
 if n_pts < 2
     close all;
@@ -37,13 +43,21 @@ fprintf("Selected %d points\n", n_pts);
 
 G = to_graph(D);
 
-start_point = user_path(1, :);
-end_point = user_path(2, :);
-sequence_order = best_path(G, flows_file, starting_img, start_point, end_point);
+new_sequence = [starting_img];
+for i = 2:n_pts
+    start_point = user_path(i, :);
+    end_point = user_path(i-1, :);
+    sequence_order = best_path(G, flows_file, starting_img, start_point, end_point);
+    fprintf("Sequence: ");
+    disp(sequence_order)
+    new_sequence = [new_sequence sequence_order(2:end)];
+    starting_img = sequence_order(end);
+end
 
-playback_path(seq, sequence_order)
 
-implay(seq);
+playback_path(seq, new_sequence)
+
+% implay(seq);
 
 
 disp('Done')
