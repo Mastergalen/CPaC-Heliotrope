@@ -17,21 +17,26 @@ end
 flows_file = matfile('data/flows.mat');
 
 % FIXME: Ability to choose starting image from input
-starting_img = 1;
+% prompt = 'Select your starting image [1]: ';
+% starting_img = input(prompt);
+% 
+% if isempty(starting_img)
+%     error('No starting image selected')
+% end
+
+starting_img = 7;
 imshow(seq(:, :, :, starting_img))
 disp('Left-click on the image in order to draw the path')
 disp('Double-click to finish drawing')
 
 % FIXME: Reenable manual drawing for final version 
-[x, y] = getpts;
+[x, y] = getline;
 close;
-% x = [832;1185.00000000000];
-% y = [546.000000000000;561.000000000000];
 user_path = [y, x];
 
 % imshow(seq(:, :, :, starting_img))
 % hold on
-% scatter(x, y, 'r.')
+% scatter(user_path(:, 2), user_path(:, 1), 20, 'rx')
 
 n_pts = size(user_path, 1);
 if n_pts < 2

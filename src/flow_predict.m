@@ -21,10 +21,13 @@ for i = 2:length(path)
     if debug
         figure
         hold on;
+        set(gca,'Ydir','reverse')
         quiver(flow(:, :, 1), flow(:, :, 2))
         % opflow = opticalFlow(flow(:, :, 1), flow(:, :, 2));
         % plot(opflow, 'DecimationFactor', [10, 10])
-        scatter(0, 100, 50, 'r.')
+        scatter(destination(2), destination(1), 50, 'r.')
+        hold off
+        error('Debugging')
     end
     
     dv = squeeze(flow(round(destination(1)), round(destination(2)), :))';
@@ -33,8 +36,8 @@ for i = 2:length(path)
         dv = -dv;
     end
     
-    % dv = (vx,vy)
-    % destination = (y,x)
+    % dv has format (vx,vy)
+    % destination has format (y,x)
     % Need to reverse order of dv 
     destination = destination + [dv(2), dv(1)];
 end
