@@ -52,7 +52,7 @@ new_sequence = [starting_img];
 for i = 2:n_pts
     start_point = user_path(i, :);
     end_point = user_path(i-1, :);
-    sequence_order = best_path(G, flows_file, starting_img, start_point, end_point);
+    sequence_order = best_path(G, flows_file, starting_img, start_point, end_point, seq);
     fprintf("Sequence: ");
     disp(sequence_order)
     new_sequence = [new_sequence sequence_order(2:end)];

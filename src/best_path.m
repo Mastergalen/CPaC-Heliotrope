@@ -1,4 +1,4 @@
-function min_path = best_path(G, flows_file, starting_node, start_point, end_point)
+function min_path = best_path(G, flows_file, starting_node, start_point, end_point, seq)
 %BEST_PATH Estimate best path
 N = numnodes(G);
 
@@ -15,7 +15,7 @@ for i = 1:N
         continue
     end
     path = shortestpath(TR, starting_node, i);
-    pred_point = flow_predict(path, flows_file, start_point);
+    pred_point = flow_predict(path, flows_file, start_point, seq);
     distance = norm(end_point - pred_point);
     if distance < min_distance
         fprintf("%f < %f | Updating min\n", distance, min_distance);
