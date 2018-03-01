@@ -10,18 +10,12 @@ steps = 10;
 [h,w,~,~] = size(seq);
 
 tform = eye(3);
+
+disp('Synthesising slow motion')
     
 for i = 2:length(playback_path)
     a = playback_path(i-1);
     b = playback_path(i);
-    
-%     figure
-%     blend = imfuse(seq(:, :, :, a), seq(:, :, :, b), 'blend');
-%     imshow(blend);
-%     
-%     figure
-%     blend = imfuse(seq(:, :, :, a), seq(:, :, :, b), 'blend', 'Scaling', 'joint');
-%     imshow(blend);
     
     flow = get_flow(flows_file, a, b) / steps;
     
@@ -43,16 +37,41 @@ for i = 2:length(playback_path)
     
     % vis_flow(big_flow, a, b)
     
-    new_seq = zeros(h, w, 3, steps + 1);
+    seq_len = steps + 1;
+    new_seq = zeros(h, w, 3, seq_len);
     new_seq(:, :, :, 1) = seq(:, :, :, a);
-    for j = 2:1 + steps
-        new_seq(:, :, :, j) = imwarp(new_seq(:, :, :, j-1), big_flow);
-    end    
     new_seq(:, :, :, end) = seq(:, :, :, b);
+    for j = 2:seq_len-1
+        imgA = imwarp(new_seq(:, :, :, j-1), big_flow);
+        imgB = imwarp(new_seq(:, :, :, end), -big_flow * (seq_len - j));
+        
+        % Weighting between images depends on temporal distance from
+        % original image 
+        distanceA = j - 1;
+        distanceB = seq_len - j;
+        totalD = distanceA + distanceB;
+        weightA = 1 - (distanceA / totalD);
+        weightB = 1 - (distanceB / totalD);
+        fused = (imgA * weightA) + (imgB * weightB);
+        
+        % vis_bi_interpolation(imgA, fused);
+        
+        new_seq(:, :, :, j) = fused;
+    end    
     
     implay(new_seq)
 end
 
+end
+
+function vis_bi_interpolation(original, fused)
+figure
+subplot(1,2,1)
+imshow(original)
+title('Original')
+subplot(1,2,2)
+imshow(fused)
+title('Fused')
 end
 
 function vis_flow(flow, from, to)
