@@ -10,17 +10,7 @@ predicted = round(start * downscale_factor);
 for i = 2:length(path)
     a = path(i-1);
     b = path(i);
-    if a > b
-        k = (a-1) * (a-2) / 2 + b;
-    else
-        k = (b-1) * (b-2) / 2 + a;
-    end
-    
-    flow = flows_file.flows_a(:, :, :, k);
-    
-    if a < b
-        flow = -flow;
-    end
+    flow = get_flow(flows_file, a, b);
     
     dv = squeeze(flow(round(predicted(1)), round(predicted(2)), :))';
     

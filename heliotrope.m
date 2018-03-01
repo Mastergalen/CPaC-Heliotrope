@@ -24,6 +24,11 @@ flows_file = matfile('data/flows.mat');
 %     error('No starting image selected')
 % end
 
+% test_path = [7     8    17    70    72    71    41    43];
+test_path = [8 7];
+playback_path(seq, test_path)
+slow_mo_seq = synthesize_slow_motion(flows_file, seq, test_path);
+
 starting_img = 7;
 imshow(seq(:, :, :, starting_img))
 disp('Left-click on the image in order to draw the path')
