@@ -50,8 +50,8 @@ G = to_graph(D);
 
 new_sequence = [starting_img];
 for i = 2:n_pts
-    start_point = user_path(i, :);
-    end_point = user_path(i-1, :);
+    start_point = user_path(i-1, :);
+    end_point = user_path(i, :);
     sequence_order = best_path(G, flows_file, starting_img, start_point, end_point, seq);
     fprintf("Sequence: ");
     disp(sequence_order)

@@ -1,11 +1,11 @@
-function [ destination ] = flow_predict( path, flows_file, start, seq )
+function [ predicted ] = flow_predict( path, flows_file, start, seq )
 %FLOW_PREDICT Summary of this function goes here
 %   Detailed explanation goes here
 
-debug = false;
+debug_flow = false;
 downscale_factor = 0.3;
 
-destination = round(start * downscale_factor);
+predicted = round(start * downscale_factor);
 
 for i = 2:length(path)
     a = path(i-1);
@@ -22,16 +22,16 @@ for i = 2:length(path)
         flow = -flow;
     end
     
-    dv = squeeze(flow(round(destination(1)), round(destination(2)), :))';
+    dv = squeeze(flow(round(predicted(1)), round(predicted(2)), :))';
     
-    old_destination = destination;
+    old_destination = predicted;
     
     % dv has format (vx,vy)
     % destination has format (y,x)
     % Need to reverse order of dv 
-    destination = destination + [dv(2), dv(1)];
+    predicted = predicted + [dv(2), dv(1)];
     
-    if debug
+    if debug_flow
         fprintf('Showing optical flow for image %d to %d\n', a, b)
         figure
         hold on;
@@ -40,14 +40,14 @@ for i = 2:length(path)
         % opflow = opticalFlow(flow(:, :, 1), flow(:, :, 2));
         % plot(opflow, 'DecimationFactor', [10, 10])
         scatter(old_destination(2), old_destination(1), 50, 'r.')        
-        scatter(destination(2), destination(1), 50, 'g.')
+        scatter(predicted(2), predicted(1), 50, 'g.')
         hold off
         
         figure
         imshow(seq(:,:,:,a))
         hold on
         scatter(old_destination(2) / downscale_factor, old_destination(1) / downscale_factor, 50, 'r.')        
-        scatter(destination(2) / downscale_factor, destination(1) / downscale_factor, 50, 'g.')
+        scatter(predicted(2) / downscale_factor, predicted(1) / downscale_factor, 50, 'g.')
         hold off
         
         error('Debugging')
@@ -55,7 +55,7 @@ for i = 2:length(path)
     
 end
 
-destination = round(destination / downscale_factor);
+predicted = round(predicted / downscale_factor);
 
 end
 
