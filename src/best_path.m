@@ -20,7 +20,7 @@ for i = 1:N
     pred_point = flow_predict(path, flows_file, start_point, seq);
     distance = norm(end_point - pred_point);
     if distance < min_distance
-        fprintf("%f < %f | Updating min\n", distance, min_distance);
+        % fprintf("%f < %f | Updating min\n", distance, min_distance);
         min_distance = distance;
         min_path = path;
         min_pred_point = pred_point;

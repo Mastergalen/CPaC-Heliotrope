@@ -1,21 +1,25 @@
-function [ seq ] = synthesize_slow_motion( flows_file, seq, playback_path )
+function [ new_seq ] = synthesize_slow_motion( flows_file, seq, playback_path )
 %SYNTHESIZE_SLOW_MOTION Synthesise slow motion through interpolation via
 % optical flow
 % flows_file | Reference to flows.mat file
 % seq | Loaded image sequence
 % playback_path | Array of video sequence indexes
 
+% TODO: Calculate step size based on magnitude of optical flow
 steps = 10;
 
 [h,w,~,~] = size(seq);
+checkpoints = length(playback_path);
 
-tform = eye(3);
+fprintf('Synthesising slow motion: ')
+disp(playback_path)
 
-disp('Synthesising slow motion')
+new_seq = zeros(h,w,3, checkpoints + ...
+    (checkpoints - 1) * (steps - 1));
     
-for i = 2:length(playback_path)
-    a = playback_path(i-1);
-    b = playback_path(i);
+for i = 1:length(playback_path)-1
+    a = playback_path(i);
+    b = playback_path(i+1);
     
     flow = get_flow(flows_file, a, b) / steps;
     
@@ -37,18 +41,16 @@ for i = 2:length(playback_path)
     
     % vis_flow(big_flow, a, b)
     
-    seq_len = steps + 1;
-    new_seq = zeros(h, w, 3, seq_len);
-    new_seq(:, :, :, 1) = seq(:, :, :, a);
-    new_seq(:, :, :, end) = seq(:, :, :, b);
-    for j = 2:seq_len-1
-        imgA = imwarp(new_seq(:, :, :, j-1), big_flow);
-        imgB = imwarp(new_seq(:, :, :, end), -big_flow * (seq_len - j));
+    start_idx = ((i-1) * steps) + 1;
+    new_seq(:, :, :, start_idx) = seq(:, :, :, a);
+    for j = 1:steps-1
+        imgA = imwarp(seq(:, :, :, a), big_flow * j);
+        imgB = imwarp(seq(:, :, :, b), -big_flow * (steps - j));
         
         % Weighting between images depends on temporal distance from
         % original image 
-        distanceA = j - 1;
-        distanceB = seq_len - j;
+        distanceA = j;
+        distanceB = steps - j;
         totalD = distanceA + distanceB;
         weightA = 1 - (distanceA / totalD);
         weightB = 1 - (distanceB / totalD);
@@ -56,12 +58,11 @@ for i = 2:length(playback_path)
         
         % vis_bi_interpolation(imgA, fused);
         
-        new_seq(:, :, :, j) = fused;
+        new_seq(:, :, :, start_idx + j) = fused;
     end    
-    
-    implay(new_seq)
 end
 
+new_seq(:, :, :, end) = seq(:, :, :, playback_path(end));
 end
 
 function vis_bi_interpolation(original, fused)

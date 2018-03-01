@@ -24,24 +24,21 @@ flows_file = matfile('data/flows.mat');
 %     error('No starting image selected')
 % end
 
+% TODO: Remove in final version
 % test_path = [7     8    17    70    72    71    41    43];
-test_path = [8 7];
-playback_path(seq, test_path)
-slow_mo_seq = synthesize_slow_motion(flows_file, seq, test_path);
+% test_path = [7     8    17];
+% test_path = [8 7];
+% playback_path(seq, test_path)
+% slow_mo_seq = synthesize_slow_motion(flows_file, seq, test_path);
 
 starting_img = 7;
 imshow(seq(:, :, :, starting_img))
-disp('Left-click on the image in order to draw the path')
+title('Left-click on the image in order to draw the path')
 disp('Double-click to finish drawing')
 
-% FIXME: Reenable manual drawing for final version 
 [x, y] = getline;
 close;
 user_path = [y, x];
-
-% imshow(seq(:, :, :, starting_img))
-% hold on
-% scatter(user_path(:, 2), user_path(:, 1), 20, 'rx')
 
 n_pts = size(user_path, 1);
 if n_pts < 2
@@ -64,10 +61,9 @@ for i = 2:n_pts
     starting_img = sequence_order(end);
 end
 
+slow_mo_seq = synthesize_slow_motion(flows_file, seq, new_sequence);
+implay(slow_mo_seq, 10);
 
 playback_path(seq, new_sequence)
-
-% implay(seq);
-
 
 disp('Done')
