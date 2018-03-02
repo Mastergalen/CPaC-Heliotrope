@@ -1,7 +1,8 @@
-function [ D ] = similarity( sequence )
-%SIMILARITY Calculate similarity matrix between all frames
-%   Only takes into account l2 norm
-%   See better_similarity() for more advanced version
+function [ D ] = better_similarity( sequence, flows_file )
+%BETTER_SIMILARITY Calculate similarity matrix between all frames
+% but also take into account trajectory
+%   Detailed explanation goes here
+
 
 [~, ~, ~, frames] = size(sequence);
 
@@ -21,5 +22,7 @@ for i = 1:frames
     end
 end
 
+
 end
 
+function avg_flow

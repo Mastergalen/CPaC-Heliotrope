@@ -1,4 +1,4 @@
-function [ predicted ] = flow_predict( path, flows_file, start, seq )
+function [ predictions ] = flow_predict( path, flows_file, start, seq )
 %FLOW_PREDICT Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,6 +6,8 @@ debug_flow = false;
 downscale_factor = 0.3;
 
 predicted = round(start * downscale_factor);
+
+predictions = zeros(length(path)-1,2);
 
 for i = 2:length(path)
     a = path(i-1);
@@ -18,8 +20,9 @@ for i = 2:length(path)
     
     % dv has format (vx,vy)
     % destination has format (y,x)
-    % Need to reverse order of dv 
+    % Need to reverse order of dv
     predicted = predicted + [dv(2), dv(1)];
+    predictions(i-1, :) = predicted;
     
     if debug_flow
         fprintf('Showing optical flow for image %d to %d\n', a, b)
@@ -45,7 +48,7 @@ for i = 2:length(path)
     
 end
 
-predicted = round(predicted / downscale_factor);
+predictions = round(predictions / downscale_factor);
 
 end
 

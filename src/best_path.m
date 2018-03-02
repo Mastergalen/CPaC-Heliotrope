@@ -1,29 +1,31 @@
-function min_path = best_path(G, flows_file, starting_node, start_point, end_point, seq)
+function [min_path, min_pred_pts] = best_path(G, flows_file, starting_node, start_point, end_point, seq)
 %BEST_PATH Estimate best path
 debug = false;
 N = numnodes(G);
 
 TR = shortestpathtree(G, starting_node);
-plot(TR)
+% figure
+% plot(TR)
+% title('Shortest path')
 % TODO: Could improve performance by using DFS and caching previous flow
 % value
 % v = dfsearch(TR, starting_node);
 
 min_distance = Inf;
 min_path = [];
-min_pred_point = zeros(size(end_point));
+min_pred_pts = [NaN NaN];
 for i = 1:N
     if i == starting_node
         continue
     end
     path = shortestpath(TR, starting_node, i);
-    pred_point = flow_predict(path, flows_file, start_point, seq);
-    distance = norm(end_point - pred_point);
+    pred_pts = flow_predict(path, flows_file, start_point, seq);
+    distance = norm(end_point - pred_pts(end, :));
     if distance < min_distance
         % fprintf("%f < %f | Updating min\n", distance, min_distance);
         min_distance = distance;
         min_path = path;
-        min_pred_point = pred_point;
+        min_pred_pts = pred_pts;
     end
 end
 

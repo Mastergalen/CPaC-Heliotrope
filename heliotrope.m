@@ -33,7 +33,7 @@ flows_file = matfile('data/flows.mat');
 
 starting_img = 7;
 imshow(seq(:, :, :, starting_img))
-title('Left-click on the image in order to draw the path')
+title('Left-click on the image to draw desired path')
 disp('Double-click to finish drawing')
 
 [x, y] = getline;
@@ -51,19 +51,36 @@ fprintf("Selected %d points\n", n_pts);
 G = to_graph(D);
 
 new_sequence = [starting_img];
+new_sequence_trajectory = [starting_img];
+pred_points = [];
+pred_points_adv = [];
 for i = 2:n_pts
     start_point = user_path(i-1, :);
     end_point = user_path(i, :);
-    sequence_order = best_path(G, flows_file, starting_img, start_point, end_point, seq);
+    [simple_sequence_order, pred_pts] = best_path(G, flows_file,...
+        starting_img, start_point, end_point, seq);
+    pred_points = [pred_points; pred_pts];
+    fprintf("Simple Sequence: ");
+    disp(simple_sequence_order)
+    new_sequence = [new_sequence simple_sequence_order(2:end)];
+    
+    [sequence_order,  pred_pts_adv] = best_path_advanced(...
+        G, flows_file, starting_img, start_point, end_point, seq);
+    pred_points_adv = [pred_points_adv; pred_pts_adv];
     fprintf("Sequence: ");
     disp(sequence_order)
-    new_sequence = [new_sequence sequence_order(2:end)];
+    new_sequence_trajectory = [new_sequence_trajectory sequence_order(2:end)];
+
     starting_img = sequence_order(end);
 end
 
-slow_mo_seq = synthesize_slow_motion(flows_file, seq, new_sequence);
-implay(slow_mo_seq, 10);
+slow_mo_seq = synthesize_slow_motion(flows_file, seq, new_sequence_trajectory);
+slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_points_adv, user_path);
+h = implay(slow_mo_seq, 10);
+set(h.Parent, 'Name', 'Slow motion')
 
-playback_path(seq, new_sequence)
+% TODO: Replace pred_points
+playback_path(seq, new_sequence, 'Without trajectory', pred_points, user_path);
+playback_path(seq, new_sequence_trajectory, 'With trajectory', pred_points_adv, user_path);
 
 disp('Done')
