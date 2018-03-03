@@ -50,41 +50,40 @@ fprintf("Selected %d points\n", n_pts);
 
 G = to_graph(D);
 
-new_sequence = [starting_img];
-new_sequence_trajectory = [starting_img];
-pred_points = [];
-pred_points_adv = [];
+[seq_idx, pred_pts] = calc_path(G, flows_file, seq, starting_img, user_path, false, true);
+[seq_idx_trajectory, pred_trajectory] = calc_path(G, flows_file, seq, starting_img, user_path, true, true);
 
-start_point = user_path(1, :);
-start_point_adv = user_path(1, :);
-for i = 2:n_pts
-    end_point = user_path(i, :);
-    [simple_sequence_order, pred_pts] = best_path(G, flows_file,...
-        starting_img, start_point, end_point, seq);
-    pred_points = [pred_points; pred_pts];
-    fprintf("Simple Sequence: ");
-    disp(simple_sequence_order)
-    new_sequence = [new_sequence simple_sequence_order(2:end)];
-    
-    [sequence_order,  pred_pts_adv] = best_path_advanced(...
-        G, flows_file, starting_img, start_point, end_point, seq);
-    pred_points_adv = [pred_points_adv; pred_pts_adv];
-    fprintf("Sequence: ");
-    disp(sequence_order)
-    new_sequence_trajectory = [new_sequence_trajectory sequence_order(2:end)];
-
-    start_point = pred_points(end, :);
-    start_point_adv = pred_points_adv(end, :);
-    starting_img = sequence_order(end);
-end
-
-slow_mo_seq = synthesize_slow_motion(flows_file, seq, new_sequence_trajectory);
-slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_points_adv, user_path, 'scale', 0.4);
+slow_mo_seq = synthesize_slow_motion(flows_file, seq, seq_idx_trajectory);
+slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_trajectory, user_path, 'scale', 0.4);
 h = implay(slow_mo_seq, 10);
 set(h.Parent, 'Name', 'Slow motion')
 
 % TODO: Replace pred_points
-playback_path(seq, new_sequence, 'Without trajectory', pred_points, user_path);
-playback_path(seq, new_sequence_trajectory, 'With trajectory', pred_points_adv, user_path);
+playback_path(seq, seq_idx, 'Without trajectory', pred_pts, user_path);
+playback_path(seq, seq_idx_trajectory, 'With trajectory', pred_trajectory, user_path);
 
 disp('Done')
+
+function [sequence_idx, pred_points] = calc_path(G, flows_file, seq, starting_img, user_path, enable_advanced, enable_slow_motion)
+n_pts = size(user_path, 1);
+sequence_idx = [starting_img];
+pred_points = [];
+start_point = user_path(1, :);
+
+for i = 2:n_pts
+    end_point = user_path(i, :);
+    
+    [sequence_segment, pred_pts] = best_path(G, flows_file,...
+        starting_img, start_point, end_point, seq,...
+        'UseTrajectory', enable_advanced);
+    
+    fprintf("Sequence for line segment: ");
+    disp(sequence_segment)
+    
+    pred_points = [pred_points; pred_pts];
+    sequence_idx = [sequence_idx sequence_segment(2:end)];
+
+    start_point = pred_points(end, :);
+    starting_img = sequence_segment(end);
+end
+end
