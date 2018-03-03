@@ -1,6 +1,14 @@
-function [ seq ] = draw_path_overlay( seq, pred_pts, target_pts )
+function [ seq ] = draw_path_overlay( seq, pred_pts, target_pts, varargin )
 %DRAW_PATH_OVERLAY Edits sequence to draw overlay of user path and
 %predicted path
+
+defaultScaleFactor = 1;
+
+p = inputParser;
+validScalarPosNum = @(x) isnumeric(x) && isscalar(x) && (x > 0);
+addOptional(p, 'scale', defaultScaleFactor, validScalarPosNum);
+parse(p, varargin{:});
+
 [~, ~, ~, len] = size(seq);
 
 disp('Drawing path overlay')
@@ -13,7 +21,7 @@ pred_line = [target_pts(1,:) pred_pts(:)'];
 
 target_line = target_pts';
 target_line = target_line(:)';
-line_param = {pred_line, target_line};
+line_param = {pred_line * p.Results.scale, target_line * p.Results.scale};
 for t = 1:len
     seq(:, :, :, t) = insertShape(seq(:, :, :, t),...
         'Line', line_param, ...

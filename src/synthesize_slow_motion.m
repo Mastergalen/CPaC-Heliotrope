@@ -7,14 +7,17 @@ function [ new_seq ] = synthesize_slow_motion( flows_file, seq, playback_path )
 
 % TODO: Calculate step size based on magnitude of optical flow
 steps = 10;
+scale_factor = 0.4;
 
 [h,w,~,~] = size(seq);
+h_out = scale_factor * h;
+w_out = scale_factor * w;
 checkpoints = length(playback_path);
 
 fprintf('Synthesising slow motion: ')
 disp(playback_path)
 
-new_seq = zeros(h,w,3, checkpoints + ...
+new_seq = zeros(h_out,w_out,3, checkpoints + ...
     (checkpoints - 1) * (steps - 1));
     
 for i = 1:length(playback_path)-1
@@ -23,29 +26,33 @@ for i = 1:length(playback_path)-1
     
     flow = get_flow(flows_file, a, b) / steps;
     
-    [h_s, w_s, ~] = size(flow);
+    [h_flow, w_flow, ~] = size(flow);
     
     [Xq, Yq] = meshgrid(...
-        linspace(1,w_s,w),...
-        linspace(1,h_s,h));
+        linspace(1,w_flow,w_out),...
+        linspace(1,h_flow,h_out));
     
-    big_flow = zeros(h, w, 2, 'single');
-    big_flow(:, :, 1) = interp2(flow(:, :, 1), Xq, Yq);
-    big_flow(:, :, 2) = interp2(flow(:, :, 2), Xq, Yq);
+    flow_resized = zeros(h_out, w_out, 2, 'single');
+    flow_resized(:, :, 1) = interp2(flow(:, :, 1), Xq, Yq);
+    flow_resized(:, :, 2) = interp2(flow(:, :, 2), Xq, Yq);
     % After resizing the flow field, need to also amplify the magnitudes
     % proportionally to the scaling factor
-    big_flow = big_flow * (h / h_s);
+    flow_resized = flow_resized * (h_out / h_flow);
     
     % Need to reverse big_flow for displacement map
-    big_flow = -big_flow;
+    flow_resized = -flow_resized;
     
     % vis_flow(big_flow, a, b)
     
     start_idx = ((i-1) * steps) + 1;
-    new_seq(:, :, :, start_idx) = seq(:, :, :, a);
+    new_seq(:, :, :, start_idx) = imresize(seq(:, :, :, a), scale_factor);
     for j = 1:steps-1
-        imgA = imwarp(seq(:, :, :, a), big_flow * j);
-        imgB = imwarp(seq(:, :, :, b), -big_flow * (steps - j));
+        imgA = imwarp(...
+            imresize(seq(:, :, :, a), scale_factor),...
+            flow_resized * j);
+        imgB = imwarp(...
+            imresize(seq(:, :, :, b), scale_factor),...
+            -flow_resized * (steps - j));
         
         % Weighting between images depends on temporal distance from
         % original image 
@@ -62,7 +69,8 @@ for i = 1:length(playback_path)-1
     end    
 end
 
-new_seq(:, :, :, end) = seq(:, :, :, playback_path(end));
+new_seq(:, :, :, end) = imresize(...
+    seq(:, :, :, playback_path(end)), scale_factor);
 end
 
 function vis_bi_interpolation(original, fused)

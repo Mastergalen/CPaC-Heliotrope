@@ -32,9 +32,9 @@ flows_file = matfile('data/flows.mat');
 % slow_mo_seq = synthesize_slow_motion(flows_file, seq, test_path);
 
 starting_img = 7;
+figure
 imshow(seq(:, :, :, starting_img))
-title('Left-click on the image to draw desired path')
-disp('Double-click to finish drawing')
+title('Left-click on the image to draw desired path | Right-click to add final point and finish selection | Backspace to delete previous point')
 
 [x, y] = getline;
 close;
@@ -54,8 +54,10 @@ new_sequence = [starting_img];
 new_sequence_trajectory = [starting_img];
 pred_points = [];
 pred_points_adv = [];
+
+start_point = user_path(1, :);
+start_point_adv = user_path(1, :);
 for i = 2:n_pts
-    start_point = user_path(i-1, :);
     end_point = user_path(i, :);
     [simple_sequence_order, pred_pts] = best_path(G, flows_file,...
         starting_img, start_point, end_point, seq);
@@ -71,11 +73,13 @@ for i = 2:n_pts
     disp(sequence_order)
     new_sequence_trajectory = [new_sequence_trajectory sequence_order(2:end)];
 
+    start_point = pred_points(end, :);
+    start_point_adv = pred_points_adv(end, :);
     starting_img = sequence_order(end);
 end
 
 slow_mo_seq = synthesize_slow_motion(flows_file, seq, new_sequence_trajectory);
-slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_points_adv, user_path);
+slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_points_adv, user_path, 'scale', 0.4);
 h = implay(slow_mo_seq, 10);
 set(h.Parent, 'Name', 'Slow motion')
 
