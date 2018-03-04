@@ -2,6 +2,7 @@ function [ min_path, min_pred_pts ] = best_path( G, flows_file, starting_node, s
 %BEST_PATH Estimate best path give
 
 defaultUseTrajectory = true;
+alpha = 150; % Weight for trajectory cost
 
 p = inputParser;
 validBool = @(x) islogical(x);
@@ -22,8 +23,6 @@ TR = shortestpathtree(G, starting_node);
 % TODO: Could improve performance by using DFS and caching previous flow
 % value
 % v = dfsearch(TR, starting_node);
-
-alpha = 200; % Weight for trajectory cost
 
 min_cost = Inf;
 min_path = [];

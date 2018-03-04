@@ -7,7 +7,7 @@ function [ new_seq ] = synthesize_slow_motion( flows_file, seq, playback_path )
 
 % TODO: Calculate step size based on magnitude of optical flow
 steps = 10;
-scale_factor = 0.4;
+scale_factor = 0.5;
 
 [h,w,~,~] = size(seq);
 h_out = scale_factor * h;

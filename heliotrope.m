@@ -1,14 +1,15 @@
 
 addpath('src', 'src/utils')
 
-dataset = 'trump';
-% dataset = 'gabe';
+% Select which dataset to use
+% dataset = 'trump';
+dataset = 'gabe';
 
 fprintf('Loading %s sequence\n', dataset)
 
 if strcmp(dataset, 'gabe')
-    starting_img = 7;
-    seq = load_sequence_color('data/sequence','gjbLookAtTarget_', 0, 71, 4, 'jpg');
+    starting_img = 9;
+    seq = load_sequence_color('data/gabe','gjbLookAtTarget_', 0, 71, 4, 'jpg');
 elseif strcmp(dataset, 'trump')
     starting_img = 10;
     seq = load_sequence_color('data/trump','trump_', 0, 46, 4, 'png');
@@ -26,20 +27,14 @@ end
 
 flows_file = matfile(sprintf('data/%s_flows.mat', dataset));
 
-% FIXME: Ability to choose starting image from input
-% prompt = 'Select your starting image [1]: ';
-% starting_img = input(prompt);
-% 
-% if isempty(starting_img)
-%     error('No starting image selected')
-% end
+prompt = sprintf('Enter your starting image [%d]: ', starting_img);
+selection = input(prompt);
+ 
+if ~isempty(selection)
+    starting_img = selection;
+end
 
-% TODO: Remove in final version
-% test_path = [7     8    17    70    72    71    41    43];
-% test_path = [7     8    17];
-% test_path = [8 7];
-% playback_path(seq, test_path)
-% slow_mo_seq = synthesize_slow_motion(flows_file, seq, test_path);
+fprintf('Using image %d as start\n', starting_img)
 
 figure
 imshow(seq(:, :, :, starting_img))
@@ -63,11 +58,11 @@ G = to_graph(D);
 [seq_idx_trajectory, pred_trajectory] = calc_path(G, flows_file, seq, starting_img, user_path, true, true);
 
 slow_mo_seq = synthesize_slow_motion(flows_file, seq, seq_idx_trajectory);
-slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_trajectory, user_path, 'scale', 0.4);
+slow_mo_seq = draw_path_overlay(slow_mo_seq, pred_trajectory, user_path, 'scale', 0.5);
+write_video(slow_mo_seq, dataset);
 h = implay(slow_mo_seq, 10);
 set(h.Parent, 'Name', 'Slow motion')
 
-% TODO: Replace pred_points
 playback_path(seq, seq_idx, 'Without trajectory', pred_pts, user_path);
 playback_path(seq, seq_idx_trajectory, 'With trajectory', pred_trajectory, user_path);
 
