@@ -1,5 +1,5 @@
 function [ min_path, min_pred_pts ] = best_path( G, flows_file, starting_node, start_point, end_point, seq, varargin )
-%BEST_PATH_ADVANCED Estimate best path
+%BEST_PATH Estimate best path give
 
 defaultUseTrajectory = true;
 
@@ -33,11 +33,14 @@ for i = 1:N
         continue
     end
     path = shortestpath(TR, starting_node, i);
+    if isempty(path)
+        error(sprintf('No path found from %d to %d', starting_node, i))
+    end
     pred_pts = flow_predict(path, flows_file, start_point, seq);
     cost_distance = norm(end_point - pred_pts(end, :));
 
     if p.Results.UseTrajectory
-        cost_trajectory = alpha * calc_trajectory_cost(flows_file, path);
+        cost_trajectory = alpha * calc_trajectory_cost(flows_file, path, [start_point; pred_pts]);
     else
         cost_trajectory = 0;
     end
@@ -53,24 +56,38 @@ for i = 1:N
 end
 end
 
-function C = calc_trajectory_cost(flows_file, path)
+function C = calc_trajectory_cost(flows_file, path, pts)
 % TRAJECTORY_COST Calculate trajectory similarity cost
+% path | Vector of node indexes
+% pts | (m by 2) matrix corresponding to path
 
-prev_trajectory = calc_trajectory(flows_file, path(1), path(2));
+prev_trajectory = read_trajectory(flows_file,...
+    path(1), path(2), pts(1, :));
+
 C = 0;
 for i = 2:length(path)-1
     a = path(i);
     b = path(i + 1);
     
-    current_trajectory = calc_trajectory(flows_file, a, b);
+    current_trajectory = read_trajectory(flows_file, a, b, pts(i, :));
     C = C + norm(prev_trajectory - current_trajectory);
+    
+    prev_trajectory = current_trajectory;
 end
 
 % Normalise C to stop penalising longer paths
 C = C / length(path);
 end
 
-function trajectory = calc_trajectory(flows_file, a, b)
+function trajectory = read_trajectory(flows_file, a, b, point)
 flow = get_flow(flows_file, a, b);
-trajectory = [mean2(flow(:, :, 1)) mean2(flow(:, :, 2))];
+
+downscale_factor = 0.3;
+
+point = point * downscale_factor;
+
+trajectory = squeeze(flow(round(point(1)), round(point(2)), :));
+
+% normalise
+trajectory = trajectory / norm(trajectory);
 end

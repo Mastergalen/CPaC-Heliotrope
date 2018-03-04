@@ -1,20 +1,30 @@
 
 addpath('src', 'src/utils')
 
-disp('Loading sequence')
-seq = load_sequence_color('data/sequence','gjbLookAtTarget_', 0, 71, 4, 'jpg');
+dataset = 'trump';
+% dataset = 'gabe';
 
-if exist('data/similarity.mat', 'file') == 2
+fprintf('Loading %s sequence\n', dataset)
+
+if strcmp(dataset, 'gabe')
+    starting_img = 7;
+    seq = load_sequence_color('data/sequence','gjbLookAtTarget_', 0, 71, 4, 'jpg');
+elseif strcmp(dataset, 'trump')
+    starting_img = 10;
+    seq = load_sequence_color('data/trump','trump_', 0, 46, 4, 'png');
+end
+
+sim_file_name = sprintf('data/%s_similarity.mat', dataset);
+if exist(sim_file_name, 'file') == 2
     disp('Loading similarity from cache')
-    load('data/similarity.mat', 'D')
+    load(sim_file_name, 'D')
 else
     disp('Calculating similarity')
     D = similarity(seq);
-    save('data/similarity', 'D')
+    save(sprintf('data/%s_similarity', dataset), 'D')
 end
 
-% load('data/flows.mat', 'flows_a')
-flows_file = matfile('data/flows.mat');
+flows_file = matfile(sprintf('data/%s_flows.mat', dataset));
 
 % FIXME: Ability to choose starting image from input
 % prompt = 'Select your starting image [1]: ';
@@ -31,7 +41,6 @@ flows_file = matfile('data/flows.mat');
 % playback_path(seq, test_path)
 % slow_mo_seq = synthesize_slow_motion(flows_file, seq, test_path);
 
-starting_img = 7;
 figure
 imshow(seq(:, :, :, starting_img))
 title('Left-click on the image to draw desired path | Right-click to add final point and finish selection | Backspace to delete previous point')

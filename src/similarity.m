@@ -1,7 +1,6 @@
 function [ D ] = similarity( sequence )
 %SIMILARITY Calculate similarity matrix between all frames
 %   Only takes into account l2 norm
-%   See better_similarity() for more advanced version
 
 [~, ~, ~, frames] = size(sequence);
 
