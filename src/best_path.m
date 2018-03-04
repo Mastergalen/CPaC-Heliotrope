@@ -23,7 +23,7 @@ TR = shortestpathtree(G, starting_node);
 % value
 % v = dfsearch(TR, starting_node);
 
-alpha = 50; % Weight for trajectory cost
+alpha = 200; % Weight for trajectory cost
 
 min_cost = Inf;
 min_path = [];
