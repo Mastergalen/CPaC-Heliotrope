@@ -31,3 +31,7 @@ TIP: Use the tip of the nose as starting point to deliver best results.
 ## Adjustable parameters
 
 * Inside `src/best_path.m` you can edit `alpha` to modify the weighting of the trajectory cost.
+
+## Generate optical flow
+
+* Run `generate_flow`
